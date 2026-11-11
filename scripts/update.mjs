@@ -18,10 +18,13 @@ const DATA = join(ROOT, 'public', 'data');
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')));
 const useAi = !('no-ai' in args) && aiEnabled();
 
-/** Date US des matches de "la nuit" : jour (heure de New York) d'il y a 12 h. */
+/**
+ * Date US des matches de "la nuit" : la veille, heure de New York.
+ * Ex. lancé le 11 à 8 h 30 à Paris (2 h 30 à New York) ou à 20 h à Paris -> matches du 10.
+ */
 function nightDate() {
   if (args.date) return args.date;
-  const d = new Date(Date.now() - 12 * 3600 * 1000);
+  const d = new Date(Date.now() - 24 * 3600 * 1000);
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(d); // YYYY-MM-DD
 }
 
