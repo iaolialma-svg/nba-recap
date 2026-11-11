@@ -1,0 +1,65 @@
+name: Mise à jour quotidienne
+
+on:
+  schedule:
+    # 07:30 UTC = 08:30 (hiver) / 09:30 (été) à Paris, après la fin des matches US.
+    - cron: '30 7 * * *'
+    # Deuxième passage en fin de matinée pour les matches de la côte Ouest tardifs ou reportés.
+    - cron: '30 10 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date US des matches (AAAA-MM-JJ), vide = nuit dernière'
+        required: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Récupérer et rédiger la nuit NBA
+        if: github.event_name != 'push'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/update.mjs ${{ inputs.date && format('--date={0}', inputs.date) || '' }}
+
+      - name: Enregistrer les données
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "nba-recap-bot"
+          git config user.email "nba-recap-bot@users.noreply.github.com"
+          git add public/data
+          git diff --cached --quiet || git commit -m "Données NBA du $(date -u +%F)"
+          git push
+
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
