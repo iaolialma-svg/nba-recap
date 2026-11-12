@@ -2,7 +2,7 @@
 const SITE = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const STANDINGS = 'https://site.api.espn.com/apis/v2/sports/basketball/nba/standings';
 
-async function getJson(url, tries = 3) {
+export async function getJson(url, tries = 3) {
   for (let i = 1; ; i++) {
     try {
       const res = await fetch(url, { headers: { 'User-Agent': 'nba-recap/0.1' } });

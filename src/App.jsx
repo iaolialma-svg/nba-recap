@@ -6,6 +6,7 @@ import Game from './pages/Game.jsx';
 import Standings from './pages/Standings.jsx';
 import Article from './pages/Article.jsx';
 import Leaders from './pages/Leaders.jsx';
+import Player from './pages/Players.jsx';
 
 // Onglets latéraux : "Résultats" en premier. Ajouter ici les prochaines rubriques.
 const NAV = [
@@ -21,13 +22,14 @@ export default function App() {
   useEffect(() => setOpen(false), [route.join('/')]);
 
   const section = route[0] || '';
-  const active = section === 'match' ? 'resultats' : section === 'article' ? '' : section;
+  const active = section === 'match' ? 'resultats' : section === 'joueur' ? 'joueurs' : section === 'article' ? '' : section;
 
   let page;
   if (section === 'resultats') page = <Results date={route[1]} />;
   else if (section === 'match') page = <Game date={route[1]} id={route[2]} tab={route[3]} />;
   else if (section === 'classements') page = <Standings />;
-  else if (section === 'joueurs') page = <Leaders />;
+  else if (section === 'joueurs') page = <Leaders tab={route[1]} />;
+  else if (section === 'joueur') page = <Player id={route[1]} />;
   else if (section === 'article') page = <Article date={route[1]} id={route[2]} />;
   else page = <Home />;
 

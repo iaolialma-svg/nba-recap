@@ -1,5 +1,6 @@
 import { loadLeaders, useData } from '../api.js';
-import { ErrorState, Loading, TeamLogo } from '../components/ui.jsx';
+import { ErrorState, Loading, Tabs, TeamLogo } from '../components/ui.jsx';
+import { FollowedList } from './Players.jsx';
 import { timeAgo } from '../format.js';
 
 const fmt = (v, signed) => {
@@ -44,22 +45,37 @@ function LeaderCard({ cat }) {
   );
 }
 
-export default function Leaders() {
+const TABS = [
+  { key: 'classements', label: 'Classements' },
+  { key: 'suivis', label: 'Mes joueurs' },
+];
+
+export default function Joueurs({ tab }) {
+  const active = tab === 'suivis' ? 'suivis' : 'classements';
+  return (
+    <div className="page">
+      <div className="page-head">
+        <p className="kicker">Saison régulière</p>
+        <h1>Joueurs</h1>
+      </div>
+      <Tabs tabs={TABS} active={active} base={['joueurs']} />
+      {active === 'suivis' ? <FollowedList /> : <LeadersView />}
+    </div>
+  );
+}
+
+function LeadersView() {
   const { data, error, loading } = useData(() => loadLeaders(), []);
   if (loading) return <Loading />;
   if (error) return <ErrorState error={error} />;
   return (
-    <div className="page">
-      <div className="page-head">
-        <p className="kicker">Saison régulière {data.season || ''}</p>
-        <h1>Joueurs</h1>
-      </div>
+    <>
       <div className="leaders-grid">
         {data.categories.map((c) => <LeaderCard key={c.key} cat={c} />)}
       </div>
       <p className="muted small">
-        Moyennes par match. Seuls les joueurs qualifiés selon ESPN (assez de matches joués) sont classés. Mis à jour {timeAgo(data.generatedAt)}.
+        Saison {data.season}. Moyennes par match. Seuls les joueurs qualifiés selon ESPN (assez de matches joués) sont classés. Mis à jour {timeAgo(data.generatedAt)}.
       </p>
-    </div>
+    </>
   );
 }

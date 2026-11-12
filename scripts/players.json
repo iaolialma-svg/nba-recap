@@ -1,0 +1,15 @@
+{
+  "_aide": "Joueurs suivis dans la rubrique « Mes joueurs ». Pour en ajouter un, mets son identifiant ESPN (le nombre dans l'adresse de sa fiche espn.com/nba/player/_/id/...).",
+  "players": [
+    { "id": "3975", "name": "Stephen Curry" },
+    { "id": "5104157", "name": "Victor Wembanyama" },
+    { "id": "4278073", "name": "Shai Gilgeous-Alexander" },
+    { "id": "3032977", "name": "Giannis Antetokounmpo" },
+    { "id": "3112335", "name": "Nikola Jokic" },
+    { "id": "4065648", "name": "Jayson Tatum" },
+    { "id": "6606", "name": "Damian Lillard" },
+    { "id": "5037871", "name": "Dylan Harper" },
+    { "id": "5041939", "name": "Cooper Flagg" },
+    { "id": "3934672", "name": "Jalen Brunson" }
+  ]
+}

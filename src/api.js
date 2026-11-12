@@ -19,6 +19,7 @@ export const loadIndex = () => load('index.json');
 export const loadDay = (date) => (date ? load(`days/${date}.json`) : load('latest.json'));
 export const loadStandings = () => load('standings.json');
 export const loadLeaders = () => load('leaders.json');
+export const loadPlayers = () => load('players.json');
 
 /** Hook simple : { data, error, loading } pour une promesse dépendant de `deps`. */
 export function useData(fn, deps) {

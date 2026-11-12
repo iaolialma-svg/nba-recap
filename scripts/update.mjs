@@ -13,6 +13,7 @@ import {
 } from './lib/analyze.mjs';
 import { aiEnabled, writeArticles, writeRecap } from './lib/ai.mjs';
 import { buildLeaders } from './lib/leaders.mjs';
+import { buildPlayers } from './lib/players.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'public', 'data');
@@ -163,6 +164,18 @@ async function main() {
     log(`  Leaders : ${leaders.qualified} joueurs qualifiés, ${leaders.categories.length} classements`);
   } catch (err) {
     log(`  ! leaders indisponibles (${err.message}) — fichier précédent conservé`);
+  }
+
+  // Joueurs suivis (scripts/players.json).
+  try {
+    const cfg = JSON.parse(await readFile(join(ROOT, 'scripts', 'players.json'), 'utf8'));
+    let prevPlayers = null;
+    try { prevPlayers = JSON.parse(await readFile(join(DATA, 'players.json'), 'utf8')); } catch { /* premier lancement */ }
+    const followed = await buildPlayers(cfg.players.map((p) => p.id), prevPlayers);
+    await writeFile(join(DATA, 'players.json'), JSON.stringify(followed));
+    log(`  Joueurs suivis : ${followed.players.length}`);
+  } catch (err) {
+    log(`  ! joueurs suivis indisponibles (${err.message})`);
   }
 
   let index = [];

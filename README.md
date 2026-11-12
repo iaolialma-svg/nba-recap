@@ -7,6 +7,7 @@ Une appli perso qui récapitule chaque nuit NBA. C'est une appli web installable
   - Fiche de chaque match : **Résumé** (faits marquants, tournant du match, joueurs décisifs, chiffres clés), **Stats joueurs** (box score des deux équipes et duel d'équipes), **Classement & forme** (bilan, série, 5 derniers matches, classement de la conférence).
 - **Classements** : conférences Est et Ouest.
 - **Joueurs** : top 5 de la saison régulière en moyenne par match (points, passes, rebonds, contres et +/- sur le terrain), parmi les joueurs qualifiés selon ESPN.
+  - **Mes joueurs** : une sélection de joueurs suivis, chacun avec sa fiche (moyennes de la saison, des 5 derniers matches, de la carrière, et saison par saison). La liste se modifie dans `scripts/players.json` (identifiant ESPN de chaque joueur).
 
 ## Comment ça marche
 
