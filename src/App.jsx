@@ -5,11 +5,13 @@ import Results from './pages/Results.jsx';
 import Game from './pages/Game.jsx';
 import Standings from './pages/Standings.jsx';
 import Article from './pages/Article.jsx';
+import Leaders from './pages/Leaders.jsx';
 
 // Onglets latéraux : "Résultats" en premier. Ajouter ici les prochaines rubriques.
 const NAV = [
   { key: 'resultats', label: 'Résultats', icon: 'M4 5h16v4H4zM4 11h16v4H4zM4 17h10v2H4z' },
   { key: 'classements', label: 'Classements', icon: 'M5 20V10h3v10zm5.5 0V4h3v16zM16 20v-7h3v7z' },
+  { key: 'joueurs', label: 'Joueurs', icon: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 10c0-3.9 3.1-7 7-7s7 3.1 7 7' },
   { key: '', label: 'Actus', icon: 'M5 4h11l3 3v13H5zm3 5h8M8 12h8M8 15h5' },
 ];
 
@@ -25,6 +27,7 @@ export default function App() {
   if (section === 'resultats') page = <Results date={route[1]} />;
   else if (section === 'match') page = <Game date={route[1]} id={route[2]} tab={route[3]} />;
   else if (section === 'classements') page = <Standings />;
+  else if (section === 'joueurs') page = <Leaders />;
   else if (section === 'article') page = <Article date={route[1]} id={route[2]} />;
   else page = <Home />;
 

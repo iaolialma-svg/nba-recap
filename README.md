@@ -6,6 +6,7 @@ Une appli perso qui récapitule chaque nuit NBA. C'est une appli web installable
 - **Résultats** : tous les matches de la nuit, avec un historique jour par jour.
   - Fiche de chaque match : **Résumé** (faits marquants, tournant du match, joueurs décisifs, chiffres clés), **Stats joueurs** (box score des deux équipes et duel d'équipes), **Classement & forme** (bilan, série, 5 derniers matches, classement de la conférence).
 - **Classements** : conférences Est et Ouest.
+- **Joueurs** : top 5 de la saison régulière en moyenne par match (points, passes, rebonds, contres et +/- sur le terrain), parmi les joueurs qualifiés selon ESPN.
 
 ## Comment ça marche
 

@@ -12,6 +12,7 @@ import {
   analyzePlays, decisiveQuarter, lastGames, parseBoxscore, parseStandings, ruleBasedRecap, teamFromCompetitor,
 } from './lib/analyze.mjs';
 import { aiEnabled, writeArticles, writeRecap } from './lib/ai.mjs';
+import { buildLeaders } from './lib/leaders.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'public', 'data');
@@ -152,6 +153,17 @@ async function main() {
   await writeFile(join(DATA, 'days', `${date}.json`), JSON.stringify(day));
   await writeFile(join(DATA, 'latest.json'), JSON.stringify(day));
   await writeFile(join(DATA, 'standings.json'), JSON.stringify({ generatedAt: day.generatedAt, conferences: standings.conferences }));
+
+  // Classements individuels (moyennes par match) : en cas d'échec on garde le fichier précédent.
+  let prevLeaders = null;
+  try { prevLeaders = JSON.parse(await readFile(join(DATA, 'leaders.json'), 'utf8')); } catch { /* premier lancement */ }
+  try {
+    const leaders = await buildLeaders(prevLeaders);
+    await writeFile(join(DATA, 'leaders.json'), JSON.stringify(leaders));
+    log(`  Leaders : ${leaders.qualified} joueurs qualifiés, ${leaders.categories.length} classements`);
+  } catch (err) {
+    log(`  ! leaders indisponibles (${err.message}) — fichier précédent conservé`);
+  }
 
   let index = [];
   try { index = JSON.parse(await readFile(join(DATA, 'index.json'), 'utf8')).dates || []; } catch { /* premier lancement */ }
