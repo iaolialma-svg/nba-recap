@@ -2,10 +2,11 @@ name: Mise à jour quotidienne
 
 on:
   schedule:
-    # 07:30 UTC = 08:30 (hiver) / 09:30 (été) à Paris, après la fin des matches US.
-    - cron: '30 7 * * *'
-    # Deuxième passage en fin de matinée pour les matches de la côte Ouest tardifs ou reportés.
-    - cron: '30 10 * * *'
+    # Objectif : 8 h heure de Paris toute l'année. GitHub ne connaît que l'heure UTC,
+    # donc deux déclenchements et le job "horaire" ne garde que le bon :
+    # 06:00 UTC = 8 h en été (UTC+2), 07:00 UTC = 8 h en hiver (UTC+1).
+    - cron: '0 6 * * *'
+    - cron: '0 7 * * *'
   push:
     branches: [main]
   workflow_dispatch:
@@ -24,7 +25,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  horaire:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          CRON: ${{ github.event.schedule }}
+        run: |
+          if [ -z "$CRON" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # Décalage de Paris ce jour-là : +0200 en été, +0100 en hiver.
+          if [ "$(TZ=Europe/Paris date +%z)" = "+0200" ]; then WANTED='0 6 * * *'; else WANTED='0 7 * * *'; fi
+          if [ "$CRON" = "$WANTED" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; echo "Pas 8 h à Paris pour ce déclenchement : rien à faire."; fi
+
   update:
+    needs: horaire
+    if: needs.horaire.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

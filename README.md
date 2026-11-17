@@ -36,7 +36,7 @@ L'appli (dossier `src/`) se contente de lire ces fichiers JSON. Il n'y a ni serv
 5. Lance une première mise à jour : **Actions → Mise à jour quotidienne → Run workflow**.
 6. L'appli est en ligne sur `https://<ton-pseudo>.github.io/nba-recap/`.
 
-Ensuite, tout est automatique : mise à jour à 07:30 UTC (8 h 30 à Paris en hiver, 9 h 30 en été), puis un second passage à 10:30 UTC pour les matches terminés tard.
+Ensuite, tout est automatique : mise à jour à 8 h (heure de Paris, été comme hiver) chaque lendemain de journée de matches. Les jours sans match, rien ne change et l'appli garde la dernière nuit.
 
 ## Installer l'appli sur son téléphone
 

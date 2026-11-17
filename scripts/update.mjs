@@ -41,6 +41,12 @@ async function main() {
     fetchStandings(),
     fetchNews(30).catch(() => ({ articles: [] })),
   ]);
+  // Pas de match cette nuit-là (jour de repos, All-Star break, intersaison) : on ne touche à rien,
+  // l'appli continue d'afficher la dernière nuit avec des matches.
+  if (!board.events?.length) {
+    log('Aucun match cette nuit : pas de mise à jour.');
+    return;
+  }
   const standings = parseStandings(standingsRaw);
   // Si la nuit a déjà été traitée (2e passage du matin), on réutilise les textes IA déjà écrits.
   let previous = null;
