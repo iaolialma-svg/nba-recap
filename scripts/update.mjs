@@ -9,10 +9,11 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchNews, fetchScoreboard, fetchStandings, fetchSummary, fetchTeamSchedule } from './lib/espn.mjs';
 import {
-  analyzePlays, decisiveQuarter, lastGames, parseBoxscore, parseStandings, ruleBasedRecap, teamFromCompetitor,
+  analyzePlays, decisiveQuarter, lastGames, parseBoxscore, parseStandings, teamFromCompetitor,
 } from './lib/analyze.mjs';
 import { aiEnabled, writeArticles, writeRecap } from './lib/ai.mjs';
-import { buildLeaders } from './lib/leaders.mjs';
+import { buildLeaders, fetchSeasonAverages } from './lib/leaders.mjs';
+import { autoNews, autoNightArticles, autoRecap, createVoice } from './lib/writer.mjs';
 import { buildPlayers } from './lib/players.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -58,6 +59,8 @@ async function main() {
     return scheduleCache.get(id);
   };
 
+  const say = createVoice(date);
+  const averages = await fetchSeasonAverages().catch(() => ({}));
   const games = [];
   for (const ev of board.events || []) {
     const comp = ev.competitions[0];
@@ -89,7 +92,7 @@ async function main() {
       home: { standing: standings.byTeam[home.id] || null, last5: lastGames(hs, home.id, cutoff) },
       away: { standing: standings.byTeam[away.id] || null, last5: lastGames(as, away.id, cutoff) },
     };
-    game.recap = previousRecap(game.id) || ruleBasedRecap(game);
+    game.recap = previousRecap(game.id) || autoRecap(game, { say, averages });
     if (useAi && game.recap.source !== 'ia') {
       try {
         game.recap = await writeRecap(game);
@@ -136,26 +139,18 @@ async function main() {
       log(`  ! articles IA indisponibles (${err.message}) — articles automatiques`);
     }
   }
+  const keptAi = !!articles;
   if (!articles) {
-    articles = [];
-    if (finals.length) {
-      articles.push({
-        id: `${date}-nuit`,
-        category: 'nuit',
-        title: `La nuit NBA : ${finals.length} match${finals.length > 1 ? 's' : ''} au programme`,
-        teaser: finals.map((g) => g.recap.title).slice(0, 2).join(' · '),
-        body: finals.map((g) => `${g.recap.title}. ${g.recap.text}`).join('\n\n'),
-        gameId: null, image: null, sourceUrl: null, sourceName: null, published: new Date().toISOString(), lang: 'fr',
-      });
-    }
-    stories.slice(0, 8).forEach((n, i) => articles.push({
-      id: `${date}-n${i}`, category: 'news', title: n.headline, teaser: n.description || '', body: n.description || '',
-      gameId: null, ...newsMeta(n), lang: 'en',
-    }));
+    let followed = [];
+    try { followed = JSON.parse(await readFile(join(ROOT, 'scripts', 'players.json'), 'utf8')).players.map((p) => p.id); } catch { /* liste absente */ }
+    articles = [
+      ...autoNightArticles(date, finals, { followed }),
+      ...await autoNews(date, stories, newsMeta, previous),
+    ];
   }
 
   // ------------------------------------------------ Écriture des fichiers
-  const day = { date, generatedAt: new Date().toISOString(), ai: useAi, games, articles };
+  const day = { date, generatedAt: new Date().toISOString(), ai: keptAi, games, articles };
   await mkdir(join(DATA, 'days'), { recursive: true });
   await writeFile(join(DATA, 'days', `${date}.json`), JSON.stringify(day));
   await writeFile(join(DATA, 'latest.json'), JSON.stringify(day));

@@ -74,7 +74,7 @@ export default function Home() {
         </section>
       )}
 
-      {!data.ai && <p className="footnote">Résumés générés automatiquement. Ajoute une clé API Claude pour des articles rédigés en français.</p>}
+      {!data.ai && <p className="footnote">Résumés rédigés automatiquement à partir des statistiques. News traduites automatiquement.</p>}
     </div>
   );
 }

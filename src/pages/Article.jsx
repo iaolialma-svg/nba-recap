@@ -20,7 +20,7 @@ export default function Article({ date, id }) {
       {a.image && <img className="article-img" src={a.image} alt="" />}
       {paragraphs(a.body).map((p, i) => <p key={i}>{p}</p>)}
       {game && <a className="btn" href={href('match', data.date, game.id)}>Voir la fiche du match {game.away.abbr}-{game.home.abbr} →</a>}
-      {a.sourceUrl && <p className="source">Source : <a href={a.sourceUrl} target="_blank" rel="noreferrer">{a.sourceName || 'lien'}</a></p>}
+      {a.sourceUrl && <p className="source">{a.translated ? 'Traduction automatique. ' : ''}Source : <a href={a.sourceUrl} target="_blank" rel="noreferrer">{a.sourceName || 'lien'}</a></p>}
     </article>
   );
 }

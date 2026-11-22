@@ -112,6 +112,14 @@ export async function buildLeaders(previous) {
   };
 }
 
+/** Moyennes de saison de tous les joueurs : { id: { gp, pts } }. */
+export async function fetchSeasonAverages() {
+  const data = await getJson(`${BY_ATHLETE}?region=us&lang=en&contentorigin=espn&isqualified=false&limit=1000&sort=offensive.avgPoints%3Adesc`);
+  const names = Object.fromEntries((data.categories || []).map((c) => [c.name, c.names]));
+  const get = (a, cat, n) => Number(a.categories?.find((c) => c.name === cat)?.values?.[names[cat]?.indexOf(n)]);
+  return Object.fromEntries((data.athletes || []).map((a) => [String(a.athlete.id), { gp: get(a, 'general', 'gamesPlayed'), pts: get(a, 'offensive', 'avgPoints') }]));
+}
+
 function pick(p) {
   return { id: p.id, name: p.name, short: p.short, team: p.team, teamId: p.teamId, logo: p.logo, headshot: p.headshot, position: p.position, gp: p.gp };
 }

@@ -2,7 +2,7 @@
 
 Une appli perso qui récapitule chaque nuit NBA. C'est une appli web installable (PWA) qui fonctionne sur Android et iPhone, et qu'on partage avec un simple lien.
 
-- **Accueil** : les articles sur la nuit et les news NBA, rédigés en français par Claude.
+- **Accueil** : les articles sur la nuit (récap, perf, match à revoir, top 5, séries, mes joueurs) et les news NBA traduites en français.
 - **Résultats** : tous les matches de la nuit, avec un historique jour par jour.
   - Fiche de chaque match : **Résumé** (faits marquants, tournant du match, joueurs décisifs, chiffres clés), **Stats joueurs** (box score des deux équipes et duel d'équipes), **Classement & forme** (bilan, série, 5 derniers matches, classement de la conférence).
 - **Classements** : conférences Est et Ouest.
@@ -16,7 +16,8 @@ GitHub Actions (chaque matin)
   └─ scripts/update.mjs
        ├─ données ESPN (scores, box scores, play-by-play, classements, news)
        ├─ analyse : séries, écarts, quart-temps décisif, meilleures perfs
-       ├─ rédaction en français avec l'API Claude (sinon résumé automatique)
+       ├─ rédaction automatique en français à partir des stats (scripts/lib/writer.mjs)
+       ├─ traduction gratuite des news ESPN (MyMemory)
        └─ écrit public/data/*.json
   └─ build Vite et publication sur GitHub Pages
 ```
@@ -32,9 +33,8 @@ L'appli (dossier `src/`) se contente de lire ces fichiers JSON. Il n'y a ni serv
    git push -u origin main
    ```
 3. Dans le dépôt : **Settings → Pages → Source : GitHub Actions**.
-4. Récupère une clé API sur [console.anthropic.com](https://console.anthropic.com), puis ajoute-la dans **Settings → Secrets and variables → Actions → New repository secret**. Nom : `ANTHROPIC_API_KEY`.
-5. Lance une première mise à jour : **Actions → Mise à jour quotidienne → Run workflow**.
-6. L'appli est en ligne sur `https://<ton-pseudo>.github.io/nba-recap/`.
+4. Lance une première mise à jour : **Actions → Mise à jour quotidienne → Run workflow**.
+5. L'appli est en ligne sur `https://<ton-pseudo>.github.io/nba-recap/`.
 
 Ensuite, tout est automatique : mise à jour à 8 h (heure de Paris, été comme hiver) chaque lendemain de journée de matches. Les jours sans match, rien ne change et l'appli garde la dernière nuit.
 
@@ -54,13 +54,11 @@ node scripts/update.mjs --date=2026-11-10
 npm run dev                  # http://localhost:5173
 ```
 
-Sans la variable `ANTHROPIC_API_KEY`, le script génère des résumés automatiques à partir des stats.
+## Coût
 
-## Coût de l'IA
+L'appli fonctionne **gratuitement** : aucune clé n'est nécessaire. Les résumés et articles sont rédigés par des règles à partir des statistiques, et les news sont traduites par le service gratuit MyMemory. Si la traduction est indisponible ou son quota atteint, les news restent en anglais.
 
-Par défaut, le modèle est `claude-opus-5-5` avec un effort `low`. Compte de l'ordre de 0,03 à 0,05 $ par match, plus un appel pour les articles de l'accueil, soit quelques dizaines de centimes par nuit chargée. Le second passage du matin réutilise les textes déjà écrits.
-
-Pour réduire le coût, définis la variable `CLAUDE_MODEL=claude-haiku-5-5` dans le workflow (environ 40 fois moins cher, mais avec une écriture moins fine).
+En option, ajouter un secret GitHub `ANTHROPIC_API_KEY` réactive la rédaction par Claude (payante). Les textes déjà rédigés par Claude sont conservés dans tous les cas.
 
 ## Ajouter une rubrique
 
@@ -71,4 +69,4 @@ Pour réduire le coût, définis la variable `CLAUDE_MODEL=claude-haiku-5-5` dan
 ## Limites à connaître
 
 - Les données viennent de l'API publique **non officielle** d'ESPN. Elle est gratuite et sans clé, mais son format peut changer sans préavis.
-- Les news sources sont en anglais (ESPN). Claude les reformule en français à partir du titre et du chapô uniquement.
+- Les news sources sont en anglais (ESPN). Seuls le titre et le chapô sont traduits, automatiquement : la traduction peut être imparfaite.

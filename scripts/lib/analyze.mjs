@@ -114,10 +114,11 @@ export function analyzePlays(summary, homeId, awayId) {
     biggestRun: null,
     afterQ3: null,
     lastLeadChange: null,
+    finalLead: null, // moment où l'équipe en tête à la fin passe devant pour de bon
   };
   if (!plays.length) return res;
 
-  let prevHome = 0, prevAway = 0, prevSign = 0;
+  let prevHome = 0, prevAway = 0, prevSign = 0, prevRaw = 0;
   let run = null;
 
   for (const p of plays) {
@@ -145,6 +146,8 @@ export function analyzePlays(summary, homeId, awayId) {
       res.lastLeadChange = { at: clockOf(p), score: `${a}-${h}`, leader: sign > 0 ? homeId : awayId };
     }
     if (sign === 0 && prevSign !== 0) res.ties++;
+    if (sign !== 0 && sign !== prevRaw) res.finalLead = { at: clockOf(p), score: `${a}-${h}`, leader: sign > 0 ? homeId : awayId };
+    prevRaw = sign;
     if (sign !== 0) prevSign = sign;
     const leader = margin > 0 ? homeId : awayId;
     const cur = res.largestLead[leader];
@@ -249,57 +252,4 @@ export function statLine(p) {
   parts.push(`${pctLabel(p.fgm, p.fga)} aux tirs`);
   if (p.tpa) parts.push(`${pctLabel(p.tpm, p.tpa)} à 3 pts`);
   return parts.join(', ');
-}
-
-/** Résumé de secours, généré par règles, si l'IA n'est pas disponible. */
-export function ruleBasedRecap(game) {
-  const { home, away, flow } = game;
-  const w = home.score > away.score ? home : away;
-  const l = w === home ? away : home;
-  const margin = w.score - l.score;
-  const tops = topPerformers(game, 3);
-  const star = tops[0];
-  const facts = [];
-
-  const tone = margin >= 20 ? 'écrase' : margin >= 10 ? 'domine' : margin <= 3 ? "s'impose de justesse face à" : 'bat';
-  const title = `${w.city} ${tone} ${l.city}${star ? `, ${star.name} décisif` : ''}`;
-
-  if (flow.biggestRun && flow.biggestRun.points >= 8) {
-    const t = flow.biggestRun.team === home.id ? home : away;
-    facts.push(`Série de ${flow.biggestRun.points}-0 pour ${t.city} (${flow.biggestRun.start.at} → ${flow.biggestRun.end.at}).`);
-  }
-  const wl = flow.largestLead[w.id];
-  if (wl) facts.push(`Plus gros écart : +${wl.points} pour ${w.city} (${wl.at}).`);
-  const ll = flow.largestLead[l.id];
-  if (ll && ll.points >= 8) facts.push(`${l.city} a pourtant mené de ${ll.points} points (${ll.at}).`);
-  if (flow.leadChanges >= 8) facts.push(`Match serré : ${flow.leadChanges} changements de leader et ${flow.ties} égalités.`);
-  for (const p of tops) if (p.tags?.length) facts.push(`${p.name} (${p.team}) : ${p.tags.join(', ')}.`);
-
-  let turning = null;
-  if (game.decisiveQuarter) {
-    const q = game.decisiveQuarter;
-    turning = `Le ${q.period > 4 ? 'temps supplémentaire' : `${q.period}${q.period === 1 ? 'er' : 'e'} quart-temps`}, remporté ${q.score} par ${w.city}, a fait basculer la rencontre.`;
-  }
-  const run = flow.biggestRun;
-  if (run && run.team === w.id && run.points >= 10) {
-    const [ra, rh] = run.start.score.split('-').map(Number);
-    if (Math.abs(ra - rh) <= 10) turning = `Le tournant : une série de ${run.points}-0 signée ${w.city} entre ${run.start.at} et ${run.end.at} (de ${run.start.score} à ${run.end.score}, score extérieur-domicile).`;
-  }
-  if (flow.lastLeadChange && flow.lastLeadChange.leader === w.id && /Q4|Prol/.test(flow.lastLeadChange.at)) {
-    turning = `${w.city} reprend définitivement les commandes à ${flow.lastLeadChange.at} (${flow.lastLeadChange.score}) et ne sera plus rejoint.`;
-  }
-
-  const text =
-    `${w.name} ${tone} ${l.name} ${w.score}-${l.score}.` +
-    (star ? ` ${star.name} a été le grand artisan de la soirée (${statLine(star)}).` : '') +
-    (tops[1] ? ` ${tops[1].name} (${tops[1].team}) a également pesé avec ${statLine(tops[1])}.` : '');
-
-  return {
-    source: 'auto',
-    title,
-    text,
-    keyFacts: facts.slice(0, 5),
-    turningPoint: turning,
-    performers: tops.map((p) => ({ name: p.name, team: p.team, line: statLine(p), note: p.tags?.join(', ') || '' })),
-  };
 }
